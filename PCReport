@@ -1,0 +1,151 @@
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
+public class PCReport {
+    private Report report;
+
+    public String displayReport(PC[] objects) {
+        int col1 = 3, col2 = 20, col3 = 6, col4 = 20,
+                col5 = 50;
+        report = Report.getInstance(col1 + col2 + col3 + col4 + col5);
+
+        reportHead(report, "PCPROG REPORT");
+        int index = 1;
+
+        for (PC c : objects) {
+            report.newWord(index + report.SPACE, col1);
+            report.newWord(c.getModel() + report.SPACE, col2);
+            report.newWord(c.getYear() + report.SPACE, col3);
+            report.newWord(c.getManufacturer() + report.SPACE, col4);
+            report.newLine(c.getComps().toString(), col5);
+            index++;
+        }
+
+        reportFoot(report);
+        String reportString = report.toString();
+        return reportString;
+    }
+
+    private void reportHead(Report rg, String title) {
+        StringBuffer line = new StringBuffer();
+        int width = rg.getWidth();
+        for (int i = 0; i < width; i++) {
+            line.append(Report.REPORT_LINE_CHAR);
+        }
+        String ls = line.toString();
+        rg.newLine(ls);
+        rg.newLine(title, ((int) (0.5 * (width + title.length()))),
+                Report.Alignment.Right);
+        rg.newLine(ls, width);
+    }
+
+    private void reportFoot(Report rg) {
+        StringBuffer line = new StringBuffer();
+        int width = rg.getWidth();
+        for (int i = 0; i < width; i++) {
+            line.append(Report.REPORT_LINE_CHAR);
+        }
+        String ls = line.toString();
+        rg.newLine(ls);
+    }
+
+    public static class Report {
+
+        private static Report instance;
+
+        public static final String SPACE = " ";
+
+        public static final String REPORT_LINE_CHAR = "-";
+
+        enum Alignment {
+            Left,
+            Right;
+
+            public String getCode() {
+                if (ordinal() == Left.ordinal()) {
+                    return "-";
+                } else {
+                    return "";
+                }
+            }
+        }
+
+        private PrintStream ps;
+        private ByteArrayOutputStream bout;
+        private int width;
+
+        private Report(int width) {
+            this.width = width;
+            bout = new ByteArrayOutputStream();
+            ps = new PrintStream(bout);
+        }
+
+        public static Report getInstance(int width) {
+            if (instance == null) {
+                instance = new Report(width);
+            } else {
+                instance.setWidth(width);
+                instance.reInit();
+            }
+            return instance;
+        }
+
+
+        void newWord(String s, int width, Alignment a) {
+            ps.printf("%" + a.getCode() + width + "s", s);
+        }
+
+
+        void newWord(String s, int width) {
+            ps.printf("%" + Alignment.Right.getCode() + width + "s", s);
+        }
+
+        void newWord(double d, int precision, int width) {
+            ps.printf("%" + Alignment.Right.getCode() + width + "." + precision + "f", d);
+        }
+
+        void newLine(String s, int width, Alignment a) {
+            String fs = "%" + a.getCode() + width + "s%n";
+            ps.printf(fs, s);
+        }
+
+        void newLine(String s, int width) {
+            newLine(s, width, Alignment.Right);
+        }
+
+        void newLine(String s) {
+            ps.printf("%" + Alignment.Right.getCode() + width + "s%n", s);
+        }
+
+        void newLine(double d, int precision, int width) {
+            ps.printf("%" + Alignment.Right.getCode() + width + "." + precision + "f%n", d);
+        }
+
+        void newLine(char c, int width) {
+            ps.printf("%" + Alignment.Right.getCode() + width + "c%n", c);
+        }
+
+
+        public void setWidth(int w) {
+            width = w;
+        }
+
+
+        public int getWidth() {
+            return width;
+        }
+
+        private void reInit() {
+            ps.flush();
+            bout.reset();
+        }
+
+        @Override
+
+        public String toString() {
+            return bout.toString();
+        }
+    }
+}
+
