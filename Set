@@ -1,0 +1,111 @@
+import java.util.Vector;
+
+import utils.DOpt;
+import utils.DomainConstraint;
+import utils.OptType;
+import utils.collections.Collection;
+
+
+public class Set<T> implements Collection<T> {
+    @DomainConstraint(type = "Vector", optional = false)
+    private Vector<T> elements;
+
+    public Set() {
+        //
+        elements = new Vector<>();
+    }
+
+    @DOpt(type = OptType.MutatorAdd)
+    public void insert(T x) {
+        if (getIndex(x) < 0)
+            elements.add(x);
+    }
+
+    @DOpt(type = OptType.MutatorRemove)
+    public void remove(T x) {
+        int i = getIndex(x);
+        if (i < 0)
+            return;
+        elements.set(i, elements.lastElement());
+        elements.remove(elements.size() - 1);
+    }
+
+
+    @DOpt(type = OptType.ObserverContains)
+    public boolean isIn(T x) {
+        return (getIndex(x) >= 0);
+    }
+
+
+    @DOpt(type = OptType.ObserverSize)
+    public int size() {
+        return elements.size();
+    }
+
+    @DOpt(type = OptType.Observer)
+    public Vector<T> getElements() {
+        if (size() == 0)
+            return null;
+        else {
+            Vector<T> els = new Vector<>();
+            for (T e : elements)
+                els.add(e);
+            return els;
+        }
+    }
+
+
+    public T choose() throws IllegalStateException {
+        if (size() == 0)
+            throw new IllegalStateException("Set.choose: set is empty");
+        return elements.lastElement();
+    }
+
+    private int getIndex(T x) {
+        for (int i = 0; i < elements.size(); i++) {
+            if (x.equals(elements.get(i)))
+                return i;
+        }
+
+        return -1;
+    }
+
+    @Override
+    public String toString() {
+        if (size() == 0)
+            return "[]";
+
+        String s = "[" + elements.elementAt(0).toString();
+        for (int i = 1; i < size(); i++) {
+            s = s + "," + elements.elementAt(i).toString();
+        }
+
+        return s + "]";
+    }
+
+    public boolean repOK() {
+        if (elements == null)
+            return false;
+
+        for (int i = 0; i < elements.size(); i++) {
+            T x = elements.get(i);
+            for (int j = i + 1; j < elements.size(); j++) {
+                if (elements.get(j).equals(x))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Set)) return false;
+        Set<?> set = (Set<?>) o;
+
+        if (elements == null || set.elements == null) {
+            return false;
+        }
+        return getElements().equals(set.getElements());
+    }
+}
