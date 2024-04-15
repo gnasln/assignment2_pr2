@@ -1,0 +1,200 @@
+import utils.AttrRef;
+import utils.DOpt;
+import utils.DomainConstraint;
+import utils.OptType;
+
+public class PC {
+    private final int LENGTH_MODEL = 20;
+    private final int MIN_YEAR = 1940;
+    private final int LENGTH_MANUFACTURER = 20;
+    @DomainConstraint(type = "String", mutable = true, optional = false,
+            length = 20)
+    private String model;
+    @DomainConstraint(type = "Interger", mutable = false, optional = false,
+            min = 1940)
+    private int year;
+    @DomainConstraint(type = "String", mutable = false, optional = false,
+            length = 20)
+    private String manufacturer;
+    @DomainConstraint(type = "Set", mutable = true, optional = false, length =
+            20)
+    private Set comps;
+
+    @DOpt(type = OptType.Constructor)
+    public PC(@AttrRef("model") String model, @AttrRef("year") int year,
+              @AttrRef("manufacturer") String manufacturer,
+              @AttrRef("comps") Set comps) {
+        if (validateModel(model) == false) {
+            System.err.println("Invalid model: " + model);
+            return;
+        }
+        if (validateYear(year) == false) {
+            System.err.println("Invalid year: " + year);
+            return;
+        }
+        if (validateManufacturer(manufacturer) == false) {
+            System.err.println("Invalid manufacturer: " + manufacturer);
+            return;
+        }
+        if (validateComps(comps) == false) {
+            System.err.println("Invalid comps: " + comps.toString());
+            return;
+        }
+        this.model = model;
+        this.year = year;
+        this.manufacturer = manufacturer;
+        this.comps = new Set();
+        Object[] compsArray = comps.getElements().toArray();
+        for (Object o : compsArray) {
+            this.comps.insert(o);
+        }
+    }
+
+    @DOpt(type = OptType.Mutator)
+    @AttrRef("model")
+    public boolean setModel(String model) {
+        if (validateModel(model)) {
+            this.model = model;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @DOpt(type = OptType.Mutator)
+    @AttrRef("comps")
+    public boolean setComps(Set comps) {
+        if (validateComps(comps)) {
+            this.comps = new Set();
+            Object[] compsArray = comps.getElements().toArray();
+            for (Object o : compsArray) {
+                comps.insert(o);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @effects return {@link#model}
+     */
+    @DOpt(type = OptType.Observer)
+    @AttrRef("model")
+    public String getModel() {
+        return this.model;
+    }
+
+    /**
+     * @effects return {@link#year}
+     */
+    @DOpt(type = OptType.Observer)
+    @AttrRef("year")
+    public int getYear() {
+        return this.year;
+    }
+
+    /**
+     * @effects return {@link#manufacturer}
+     */
+    @DOpt(type = OptType.Observer)
+    @AttrRef("manufacturer")
+    public String getManufacturer() {
+        return this.manufacturer;
+    }
+
+    /**
+     * @effects return {@link#comps}
+     */
+    @DOpt(type = OptType.Observer)
+    @AttrRef("comps")
+    public Set getComps() {
+        Set comps = new Set();
+        Object[] objs = this.comps.getElements().toArray();
+        for (Object o : objs) {
+            comps.insert(o);
+        }
+        return comps;
+    }
+
+    @DOpt(type = OptType.Helper)
+    private boolean validateModel(String model) {
+        if (model != null && model.length() > 0 && model.length() <=
+                LENGTH_MODEL) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @DOpt(type = OptType.Helper)
+    private boolean validateYear(int year) {
+        if (year >= MIN_YEAR) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @DOpt(type = OptType.Helper)
+    private boolean validateManufacturer(String manufacturer) {
+        if (manufacturer != null && manufacturer.length() > 0 &&
+                manufacturer.length() <= LENGTH_MANUFACTURER) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @DOpt(type = OptType.Helper)
+    private boolean validateComps(Set comps) {
+        if (comps == null) {
+            return false;
+        } else if (comps.size() == 0) {
+            return false;
+        } else {
+            Object[] objs = comps.getElements().toArray();
+            for (int i = 0; i < comps.size(); i++) {
+                if (!(objs[i] instanceof String)) {
+                    return false; // every comps is a String
+                } else {
+                    if (((String) objs[i]).length() == 0) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean repOK() {
+        if (validateModel(model) && validateYear(year) &&
+                validateManufacturer(manufacturer) && validateComps(comps)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public String toString() {
+
+        String s = new String();
+        s = "PC:<" + getModel() + "," + getYear() + "," + getManufacturer()
+                + "," + getComps().toString() + ">";
+        return s;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof PC)) {
+            return false;
+        } else {
+            PC anotherPC = (PC) o;
+            return (getModel().equals(anotherPC.getModel()) && getYear()
+                    == anotherPC.getYear()
+                    &&
+                    getManufacturer().equals(anotherPC.getManufacturer())
+                    && getComps().equals(anotherPC.getComps()));
+        }
+    }
+}
