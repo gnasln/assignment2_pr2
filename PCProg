@@ -1,0 +1,90 @@
+import utils.DomainConstraint;
+import static utils.TextIO.*;
+
+public class PCProg {
+    private static final Object YES = "Y";
+    @DomainConstraint(mutable = true, optional = false)
+    private Set<PC> objs;
+
+
+    public PCProg() {
+        objs = new Set<>();
+    }
+
+    public void createObjects() {
+        while (true) {
+            putln("Please enter the Model: ");
+            String model = getln();
+            putln("Please enter the Year: ");
+            int year = getlnInt();
+            putln("Please enter the Manufacturer: ");
+            String manufacturer = getln();
+            putln("Enter a list of comps separated by a comma(\",\"):");
+            String compList = getln();
+            Set comps = new Set();
+            if (!compList.contains(",")) {
+                comps.insert(compList.trim());
+            } else {
+                String[] compArray = compList.trim().split(",");
+                for (String t : compArray) {
+                    comps.insert(t.trim());
+                }
+            }
+            PC newPC = new PC(model, year, manufacturer, comps);
+            if (newPC.repOK()) {
+                objs.insert(newPC);
+            }
+            putln("Do you want to add another PC? [Y/N]");
+            boolean wantToContinue = getln().toLowerCase().equals("y");
+            if (!wantToContinue) break;
+        }
+    }
+
+
+    public Set<PC> getObjects() {
+        return objs;
+    }
+
+    public String displayReport() {
+        if (objs.size() > 0) {
+            Object[] objsArr = objs.getElements().toArray();
+            PC[] pcs = new PC[objsArr.length];
+            int i = 0;
+            for (Object o : objsArr) {
+                pcs[i++] = (PC) o;
+            }
+            PCReport reportObj = new PCReport();
+            return reportObj.displayReport(pcs);
+        } else {
+            return null;
+        }
+    }
+
+    public void saveReport(String report) {
+		String fileName = "pcs.txt";
+        writeFile(fileName);
+        putln(report);
+        writeStandardOutput();
+    }
+
+
+    public static void main(String[] args) {
+
+        PCProg prog = new PCProg();
+
+        prog.createObjects();
+
+        String report = prog.displayReport();
+        if (report != null) {
+            System.out.println(report);
+            putln("Save report to file? [Y/N]");
+            String toSave = getln();
+            if (toSave.equals("Y")) {
+                prog.saveReport(report);
+                putln("Report saved");
+            }
+        }
+        putln("_END_");
+    }
+
+}
